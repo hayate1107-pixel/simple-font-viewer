@@ -250,168 +250,149 @@ function App() {
 
   return (
     <div className="min-h-screen bg-white">
-        
-        <title>【フォント比較】フォントを一覧プレビュー | Simple Font Viewer</title>
-        <meta 
-          name="description" 
-          content="「フォント 比較」ツールならSimple Font Viewerへ。日本語・英語のWebフォントや、あなたのPCにインストール済みのローカルフォントを、入力したテキストで瞬時に比較・プレビューできます。デザイナーや開発者のフォント選びを効率化します。" 
-        />
       
+      {/* ★★★ すべてのコンテンツをこの一つのマスターコンテナで囲みます ★★★ */}
+      <div className="max-w-9xl mx-auto px-6 py-16">
 
-      <div className="relative z-10 w-full px-4 sm:px-8 py-16">
-        {/* ヘッダー */}
-        <div className="text-center mb-16">
-          <h1 className="text-3xl font-light text-black mb-6 tracking-tight">
+        {/* --- ヘッダーエリア --- */}
+        <header className="text-center mb-16">
+          <h1 className="text-4xl md:text-3xl font-light text-black mb-6 tracking-tight">
             Simple Font Viewer - シンプルなフォント比較ツール -
           </h1>
-          <div className="w-24 h-px bg-black mx-auto mb-6"></div>
-        </div>
+          <div className="w-24 h-px bg-black mx-auto"></div>
+        </header>
 
-        {/* コントロール */}
-        <div className="bg-white border-2 border-gray-200 rounded-none shadow-lg mb-12">
-          <div className="p-10">
-            <div className="space-y-8">
-              {/* テキスト入力 */}
-              <div>
-                <h2 className="text-1xl font-medium text-black mb-4">
-                  プレビューテキスト
-                </h2>
-                <input
-                  id="preview-text"
-                  type="text"
-                  value={previewText}
-                  onChange={(e) => setPreviewText(e.target.value)}
-                  className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-300 rounded-none text-black placeholder-gray-500 focus:border-black focus:bg-white transition-all duration-300 text-lg font-light"
-                  placeholder="フォントをプレビューするテキストを入力..."
-                />
-              </div>
-
-              {/* ★ 変更点 1: 3つの要素を1つのグリッドコンテナにまとめる */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end pt-8 border-t-2 border-gray-100">
-
-                {/* 1. 言語切り替え */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Languages className="w-5 h-5 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-600 uppercase tracking-wider">言語</span>
-                  </div>
-                  <button
-                    onClick={handleLanguageToggle}
-                    className={`relative inline-flex items-center px-8 py-3 rounded-none transition-all duration-300 font-medium border-2 ${isJapanese
-                      ? 'bg-black text-white border-black shadow-lg'
-                      : 'bg-white text-black border-gray-300 hover:border-black'
-                      }`}
-                  >
-                    {isJapanese ? '日本語' : 'English'}
-                  </button>
-                </div>
-
-                {/* 2. フォントサイズ調整 */}
+        {/* --- コントロール＆フォントリストエリア --- */}
+        <main className="mb-24">
+          {/* コントロール */}
+          <section className="bg-white border-2 border-gray-200 rounded-none shadow-lg mb-12">
+            <div className="p-6 md:p-10">
+              <div className="space-y-8">
+                {/* テキスト入力 */}
                 <div>
-                  {/* ★ 変更点 2: ラベルは即時反映の sliderValue を表示 */}
-                  <h2 className="text-1xl font-medium text-black mb-4">
-                    フォントサイズ: {sliderValue}px
+                  <h2 className="text-sm font-medium text-gray-900 mb-3 uppercase tracking-wider">
+                    プレビューテキスト
                   </h2>
                   <input
-                    id="font-size"
-                    type="range"
-                    min="12"
-                    max="72"
-                    // ★ 変更点 3: valueとonChangeは sliderValue を使う
-                    value={sliderValue}
-                    onChange={(e) => setSliderValue(Number(e.target.value))}
-                    className="w-full h-2 bg-gray-200 rounded-none appearance-none cursor-pointer slider"
+                    id="preview-text"
+                    type="text"
+                    value={previewText}
+                    onChange={(e) => setPreviewText(e.target.value)}
+                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-300 rounded-none text-black placeholder-gray-500 focus:border-black focus:bg-white transition-all duration-300 text-lg font-light"
+                    placeholder="フォントをプレビューするテキストを入力..."
                   />
-                  <div className="flex justify-between text-xs text-gray-400 mt-1">
-                    <span>12px</span>
-                    <span>72px</span>
+                </div>
+
+                {/* 操作パネル */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end pt-8 border-t-2 border-gray-100">
+                  {/* 1. 言語切り替え */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Languages className="w-5 h-5 text-gray-600" />
+                      <span className="text-sm font-medium text-gray-600 uppercase tracking-wider">言語</span>
+                    </div>
+                    <button
+                      onClick={handleLanguageToggle}
+                      className={`relative inline-flex items-center px-8 py-3 rounded-none transition-all duration-300 font-medium border-2 ${isJapanese
+                        ? 'bg-black text-white border-black shadow-lg'
+                        : 'bg-white text-black border-gray-300 hover:border-black'
+                      }`}
+                    >
+                      {isJapanese ? '日本語' : 'English'}
+                    </button>
+                  </div>
+                  {/* 2. フォントサイズ調整 */}
+                  <div>
+                    <h2 className="text-sm font-medium text-gray-600 mb-2 uppercase tracking-wider">
+                      フォントサイズ: {sliderValue}px
+                    </h2>
+                    <input
+                      id="font-size"
+                      type="range"
+                      min="12"
+                      max="72"
+                      value={sliderValue}
+                      onChange={(e) => setSliderValue(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-none appearance-none cursor-pointer"
+                    />
+                  </div>
+                  {/* 3. PCフォント読み込みボタン */}
+                  <div>
+                    <button
+                      onClick={loadLocalFonts}
+                      className="w-full flex items-center justify-center space-x-3 px-8 py-3 bg-white text-black border-2 border-gray-300 rounded-none transition-all duration-300 hover:border-black group"
+                    >
+                      <FolderDown className="w-5 h-5 text-gray-500 group-hover:text-black transition-colors" />
+                      <span className="text-sm font-medium uppercase tracking-wider text-gray-700 group-hover:text-black transition-colors">
+                        PCフォントを読み込む
+                      </span>
+                    </button>
                   </div>
                 </div>
-
-                {/* 3. PCフォント読み込みボタン (★ 変更点 2: ここに移動) */}
-                <div>
-                  <button
-                    onClick={loadLocalFonts}
-                    // ★ 変更点 3: 高さを他のボタンと合わせるため py-3 に調整
-                    className="w-full flex items-center justify-center space-x-3 px-8 py-3 bg-white text-black border-2 border-gray-300 rounded-none transition-all duration-300 hover:border-black group"
-                  >
-                    <FolderDown className="w-5 h-5 text-black " />
-                    <span className="text-sm font-medium uppercase tracking-wider">
-                      PCフォントを読み込む
-                    </span>
-                  </button>
-                </div>
-
               </div>
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* ★★★ ここからフォントリストのUIを全面的に変更 ★★★ */}
-        <div>
-          <h3 className="mb-4 text-gray-600">
-            <p>{isJapanese ? '日本語フォント' : '英語フォント'} ({filteredFonts.length}件)</p>
-          </h3>
-
-          {filteredFonts.length === 0 ? (
-            <div className="border-2 border-gray-200 rounded-none p-16 text-center">
-              <div className="text-gray-600 text-xl mb-3 font-light">フォントが見つかりません</div>
-              <div className="text-gray-400 text-sm uppercase tracking-wider">検索条件やフィルター条件を調整してください</div>
+          {/* フォントリスト */}
+          <section>
+            <div className="mb-4 text-gray-600">
+              <p>{isJapanese ? '日本語フォント' : '英語フォント'} ({filteredFonts.length}件)</p>
             </div>
-          ) : (
-            // ★ 変更点 1: grid から flex flex-wrap に変更
-            <div className="flex flex-wrap gap-4">
-              {filteredFonts.map((font) => (
-                // --- フォントカード ---
-                <div
-                  key={font.name}
-                  // ★ 変更点 2: aspect-square を削除し、最小幅(min-w)を追加
-                  className="border border-gray-200 bg-white hover:shadow-lg hover:border-black transition-all duration-200 p-4 rounded-none flex flex-col items-center justify-center min-w-[160px]"
-                >
-                  {/* プレビューテキスト */}
-                  <div className="overflow-hidden">
-                    <p
-                      className="text-center break-all text-black"
-                      style={{
-                        fontFamily: font.family,
-                        // ★ 変更点 4: ここでは遅延更新された debouncedFontSize を使う
-                        fontSize: `${debouncedFontSize}px`,
-                        whiteSpace: 'nowrap',
-                        lineHeight: 1.2
-                      }}
-                    >
-                      {previewText}
+            {filteredFonts.length === 0 ? (
+              <div className="border-2 border-gray-200 rounded-none p-16 text-center">
+                <div className="text-gray-600 text-xl mb-3 font-light">フォントが見つかりません</div>
+                <div className="text-gray-400 text-sm uppercase tracking-wider">検索条件やフィルター条件を調整してください</div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-4">
+                {filteredFonts.map((font) => (
+                  <div key={font.name} className="border border-gray-200 bg-white hover:shadow-lg hover:border-black transition-all duration-200 p-4 rounded-none flex flex-col items-center justify-center min-w-[160px]">
+                    <div className="overflow-hidden">
+                      <p className="text-center break-all text-black" style={{ fontFamily: font.family, fontSize: `${debouncedFontSize}px`, whiteSpace: 'nowrap', lineHeight: 1.2 }}>
+                        {previewText}
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-3 text-center truncate w-full">
+                      {font.name}
                     </p>
                   </div>
-                  {/* フォント名 */}
-                  <p className="text-xs text-gray-500 mt-3 text-center truncate w-full">
-                    {font.name}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </main>
 
-        {/* フッター */}
-        <div className="text-center mt-16 text-gray-500">
-          <div className="bg-gray-50 rounded-none px-8 py-6 border border-gray-200 max-w-2xl mx-auto">
-          <h2 className="text-xl font-medium text-black mb-4">Simple Font Viewerについて</h2>
-          <p className="text-base text-gray-700 leading-relaxed max-w-3xl mx-auto mb-8">
-            このツールは、Webデザイナー、開発者、資料作成を行うすべての方のための、オンラインフォント比較ツールです。プレビューしたいテキストを入力し、フォントサイズを調整するだけで、様々な日本語・英語フォントがどのように表示されるかをリアルタイムで確認できます。さらに、「PCフォントを読み込む」機能を使えば、あなたのコンピュータにインストールされているお気に入りのフォントも一覧で比較可能です。最適なフォントを見つけるための時間と手間を、大幅に削減します。
-          </p>
-          
-          <div className="w-24 h-px bg-gray-300 mx-auto mb-8"></div>
-          
-          {/* 既存の注意書き */}
-          <p className="text-sm text-gray-500">
-            フォントの利用可能性は、お使いのオペレーティングシステムとインストールされているフォントによって異なります。
-            {isJapanese && '日本語フォントには適切なシステムサポートが必要な場合があります。'}
-            また日本語・英語フォントを100%判別できかねるため、ご了承お願いいたします。
-          </p>
+        {/* --- 説明文フッターエリア --- */}
+        {/* ★ 変更点: 背景色や全幅設定を削除し、シンプルなdivに */}
+        <div className="border-t border-gray-200 pt-16">
+          <h2 className="text-xl font-medium text-black mb-4 text-center">Simple Font Viewerについて</h2>
+          {/* ★ 変更点: text-leftで左揃えにし、中央揃え用のクラスを削除 */}
+          <div className="text-left text-sm text-gray-600 leading-relaxed space-y-4">
+            <p>
+              このツールは、Webデザイナー、開発者、資料作成を行うすべての方のための、オンラインフォント比較ツールです。プレビューしたいテキストを入力し、フォントサイズを調整するだけで、様々な日本語・英語フォントがどのように表示されるかをリアルタイムで確認できます。さらに、「PCフォントを読み込む」機能を使えば、あなたのコンピュータにインストールされているお気に入りのフォントも一覧で比較可能です。最適なフォントを見つけるための時間と手間を、大幅に削減します。
+            </p>
+            <p className="text-xs text-gray-500">
+              フォントの利用可能性は、お使いのオペレーティングシステムとインストールされているフォントによって異なります。
+              {isJapanese && '日本語フォントには適切なシステムサポートが必要な場合があります。'}
+              また日本語・英語フォントを100%判別できかねるため、ご了承お願いいたします。
+            </p>
           </div>
         </div>
-      </div>
+
+        {/* --- コピーライトフッターエリア --- */}
+        <footer className="text-center pt-16">
+          <div className="text-sm text-gray-400">
+            <p>
+              &copy; 2025 | Powered by{' '}
+              <a href="https://www.simple-font-viewer.com/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">
+                Simple Font Viewer
+              </a>
+            </p>
+          </div>
+        </footer>
+
+      </div> 
+
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
