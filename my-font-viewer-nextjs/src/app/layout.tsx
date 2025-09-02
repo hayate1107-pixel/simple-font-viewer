@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
+import Script from 'next/script';
 import './globals.css';
-import { AnalyticsEvents } from '@/components/AnalyticsEvents';
+import { AnalyticsEvents } from '../components/AnalyticsEvents'; 
 
 export const metadata: Metadata = {
   title: '【フォント比較】フォントを一覧プレビュー | Simple Font Viewer',
@@ -17,7 +18,7 @@ export default function RootLayout({
     <html lang="ja">
       <Script
         strategy="afterInteractive"
-        src={`https://www.googletagmanager.com/gtag/js?id=G-3N217MK6JB`} // ★ あなたのIDに置き換え
+        src={`https://www.googletagmanager.com/gtag/js?id=G-3N217MK6JB`}
       />
       <Script
         id="gtag-init"
@@ -27,7 +28,7 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-3N217MK6JB', { // ★ あなたのIDに置き換え
+            gtag('config', 'G-3N217MK6JB', {
               page_path: window.location.pathname,
             });
           `,
@@ -35,6 +36,7 @@ export default function RootLayout({
       />
       <body>
         {children}
+        <AnalyticsEvents />
       </body>
     </html>
   );
