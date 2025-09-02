@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { AnalyticsEvents } from '@/components/AnalyticsEvents';
 
 export const metadata: Metadata = {
   title: '【フォント比較】フォントを一覧プレビュー | Simple Font Viewer',
@@ -8,11 +9,30 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: { 
+}: {
   children: React.ReactNode;
 }) {
   return (
+
     <html lang="ja">
+      <Script
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=G-3N217MK6JB`} // ★ あなたのIDに置き換え
+      />
+      <Script
+        id="gtag-init"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-3N217MK6JB', { // ★ あなたのIDに置き換え
+              page_path: window.location.pathname,
+            });
+          `,
+        }}
+      />
       <body>
         {children}
       </body>
