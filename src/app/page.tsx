@@ -1,103 +1,434 @@
-import Image from "next/image";
+'use client';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Type, Languages, Copy, Check, Search, Filter, FolderDown } from 'lucide-react';
 
-export default function Home() {
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+}
+
+// ★ 修正点: 重複していた FontData interface を一つに修正
+interface FontData {
+  name: string;
+  family: string;
+  category: string;
+}
+
+interface FontMetadata {
+  family: string;
+  fullName: string;
+  postscriptName: string;
+  style: string;
+}
+
+declare global {
+  interface Window {
+    queryLocalFonts?: () => Promise<FontMetadata[]>;
+  }
+}
+
+const knownJapaneseFontFamilyPrefixes = [
+  // 大手メーカー
+  'ms gothic', 'ms pgothic', 'ms ui gothic', 'ms mincho', 'ms pmincho',
+  'meiryo', 'yu gothic', 'yu mincho', 'biz ud',
+  'hiragino', 'a-otf', 'fot-', 'dfp', 'df', 'hgs', 'hgp', 'iw-',
+  // 主要フリーフォント・ブランド
+  'noto sans jp', 'noto serif jp',
+  'source han sans', 'source han serif', 'source han code',
+  'm plus', 'rounded-mplus',
+  'zen kaku', 'zen maru', 'zen old',
+  'dela gothic one', 'kosugi', 'shippori mincho',
+  'genei', 'genkai', 'kinuta', 'koku',
+  'senobi', 'sicshishigashira', 'ten mincho',
+  'field gothic', 'kf-', 'jk-', 'mgen', 'itou-', 'seto-', 'gn-', 'id-',
+  // ユーザーの環境から特定
+  'ab-', 'ab_', 'ads-', 'ta_', 'ta-', `tk_`, `tk-`,
+];
+
+const englishFontExclusionList = new Set([
+  'franklin gothic', 'cofo gothic vf', 'ltc octic gothic', 'nickel gothic variable', 'malgun gothic',
+]);
+
+const japaneseKeywords = [
+  'gothic', 'mincho', 'maru', 'fude', 'brush',
+  'kai', 'gyosho', 'rei', 'pop', 'tegaki', 'pen', 'moji', 'shodo', 'kokoro', 'hannari',
+  'shizuku', 'amayadori', 'tsubaki', 'showwa',
+];
+
+/**
+ * 最終完成版：語彙力を強化した3段階評価によるハイブリッド判定関数
+ */
+const isJapaneseFont = (fontFamily: string): boolean => {
+  const lowerCaseFamily = fontFamily.toLowerCase();
+
+  if (englishFontExclusionList.has(lowerCaseFamily)) {
+    return false;
+  }
+
+  if (knownJapaneseFontFamilyPrefixes.some(prefix => lowerCaseFamily.startsWith(prefix))) {
+    return true;
+  }
+
+  if (japaneseKeywords.some(keyword => lowerCaseFamily.includes(keyword))) {
+    return true;
+  }
+
+  // ★★★ ここの正規表現を修正しました ★★★
+  const japaneseRegex = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\uff00-\uff9f\u4e00-\u9faf\u3400-\u4dbf]/;
+  if (japaneseRegex.test(lowerCaseFamily)) {
+    return true;
+  }
+
+  return false;
+};
+
+const englishFonts: FontData[] = [
+  { name: 'Inter', family: 'Inter, system-ui, sans-serif', category: 'サンセリフ' },
+  { name: 'SF Pro Display', family: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif', category: 'サンセリフ' },
+  { name: 'Segoe UI', family: '"Segoe UI", system-ui, sans-serif', category: 'サンセリフ' },
+  { name: 'Roboto', family: 'Roboto, system-ui, sans-serif', category: 'サンセリフ' },
+  { name: 'Arial', family: 'Arial, sans-serif', category: 'サンセリフ' },
+  { name: 'Helvetica Neue', family: '"Helvetica Neue", Helvetica, Arial, sans-serif', category: 'サンセリフ' },
+  { name: 'Times New Roman', family: '"Times New Roman", Times, serif', category: 'セリフ' },
+  { name: 'Georgia', family: 'Georgia, "Times New Roman", serif', category: 'セリフ' },
+  { name: 'Playfair Display', family: '"Playfair Display", Georgia, serif', category: 'セリフ' },
+  { name: 'Source Serif Pro', family: '"Source Serif Pro", Georgia, serif', category: 'セリフ' },
+  { name: 'JetBrains Mono', family: '"JetBrains Mono", "Fira Code", Consolas, monospace', category: '等幅' },
+  { name: 'Fira Code', family: '"Fira Code", Consolas, "Courier New", monospace', category: '等幅' },
+  { name: 'SF Mono', family: '"SF Mono", Monaco, "Cascadia Code", monospace', category: '等幅' },
+  { name: 'Poppins', family: 'Poppins, system-ui, sans-serif', category: 'サンセリフ' },
+  { name: 'Montserrat', family: 'Montserrat, system-ui, sans-serif', category: 'サンセリフ' },
+  { name: 'Open Sans', family: '"Open Sans", system-ui, sans-serif', category: 'サンセリフ' },
+  { name: 'Lato', family: 'Lato, system-ui, sans-serif', category: 'サンセリフ' },
+  { name: 'Nunito', family: 'Nunito, system-ui, sans-serif', category: 'サンセリフ' },
+];
+
+const japaneseFonts: FontData[] = [
+  { name: 'Noto Sans JP', family: '"Noto Sans JP", system-ui, sans-serif', category: 'ゴシック' },
+  { name: 'Noto Serif JP', family: '"Noto Serif JP", serif', category: '明朝' },
+  { name: 'ヒラギノ角ゴ ProN', family: '"ヒラギノ角ゴ ProN W3", "HiraKakuProN-W3", sans-serif', category: 'ゴシック' },
+  { name: 'ヒラギノ明朝 ProN', family: '"ヒラギノ明朝 ProN W3", "HiraMinProN-W3", serif', category: '明朝' },
+  { name: '游ゴシック', family: '"游ゴシック", "YuGothic", sans-serif', category: 'ゴシック' },
+  { name: '游明朝', family: '"游明朝", "YuMincho", serif', category: '明朝' },
+  { name: 'メイリオ', family: '"メイリオ", "Meiryo", sans-serif', category: 'ゴシック' },
+  { name: 'Source Han Sans JP', family: '"Source Han Sans JP", sans-serif', category: 'ゴシック' },
+  { name: 'Source Han Serif JP', family: '"Source Han Serif JP", serif', category: '明朝' },
+  { name: 'BIZ UDPゴシック', family: '"BIZ UDPGothic", sans-serif', category: 'ゴシック' },
+  { name: 'BIZ UDP明朝', family: '"BIZ UDPMincho", serif', category: '明朝' },
+  { name: 'Zen角ゴシック New', family: '"Zen Kaku Gothic New", sans-serif', category: 'ゴシック' },
+  { name: 'Zen旧明朝', family: '"Zen Old Mincho", serif', category: '明朝' },
+  { name: 'こすぎ', family: '"Kosugi", sans-serif', category: 'ゴシック' },
+  { name: 'こすぎ丸', family: '"Kosugi Maru", sans-serif', category: 'ゴシック' },
+  { name: 'M PLUS 1p', family: '"M PLUS 1p", sans-serif', category: 'ゴシック' },
+  { name: 'M PLUS Rounded 1c', family: '"M PLUS Rounded 1c", sans-serif', category: 'ゴシック' },
+  { name: 'はんなり明朝', family: '"Hannari", serif', category: '明朝' },
+  { name: 'こころ明朝', family: '"Kokoro", serif', category: '明朝' },
+  { name: '遊星マジック', family: '"Yusei Magic", sans-serif', category: 'ゴシック' },
+];
+
+const categoryColors = {
+  'サンセリフ': 'bg-gray-100 text-gray-800 border-gray-300',
+  'ゴシック': 'bg-gray-100 text-gray-800 border-gray-300',
+  'セリフ': 'bg-gray-200 text-gray-900 border-gray-400',
+  '明朝': 'bg-gray-200 text-gray-900 border-gray-400',
+  '等幅': 'bg-black text-white border-gray-600',
+  'モノスペース': 'bg-black text-white border-gray-600',
+  '筆記体': 'bg-gray-50 text-gray-700 border-gray-200',
+  'ファンタジー': 'bg-gray-300 text-gray-900 border-gray-500',
+  'ディスプレイ': 'bg-gray-800 text-white border-gray-700',
+  'ローカル': 'bg-blue-100 text-blue-800 border-blue-300',
+};
+
+function App() {
+  const [previewText, setPreviewText] = useState('素早い茶色の狐が怠惰な犬を飛び越える');
+  const [isJapanese, setIsJapanese] = useState(true);
+  const [copiedFont, setCopiedFont] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('すべて');
+  const [sliderValue, setSliderValue] = useState(24); // スライダーが直接操作する値
+  const debouncedFontSize = useDebounce(sliderValue, 200); // 200ms遅延して更新される値
+  const [localJapaneseFonts, setLocalJapaneseFonts] = useState<FontData[]>([]);
+  const [localEnglishFonts, setLocalEnglishFonts] = useState<FontData[]>([]);
+
+  const defaultJapaneseText = 'いろはにほへと ちりぬるを わかよたれそ つねならむ';
+  const defaultEnglishText = 'The quick brown fox jumps over the lazy dog';
+
+  const currentFonts = useMemo(() => {
+    const baseFonts = isJapanese ? japaneseFonts : englishFonts;
+    const localFontsToCombine = isJapanese ? localJapaneseFonts : localEnglishFonts;
+
+    const combined = [...baseFonts, ...localFontsToCombine];
+    // 重複を除外
+    const uniqueFonts = Array.from(new Map(combined.map(font => [font.name, font])).values());
+    return uniqueFonts;
+  }, [isJapanese, localJapaneseFonts, localEnglishFonts]);
+
+  const categories = ['すべて', ...Array.from(new Set(currentFonts.map(font => font.category)))];
+
+  const filteredFonts = currentFonts.filter(font => {
+    const matchesSearch = font.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'すべて' || font.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const handleLanguageToggle = () => {
+    setIsJapanese(!isJapanese);
+    setSearchQuery('');
+    setSelectedCategory('すべて');
+    if (!isJapanese) {
+      setPreviewText(defaultJapaneseText);
+    } else {
+      setPreviewText(defaultEnglishText);
+    }
+  };
+
+  const copyFontName = async (fontName: string) => { // ★ 変更点: 引数名と処理を修正
+    try {
+      await navigator.clipboard.writeText(fontName);
+      setCopiedFont(fontName);
+      setTimeout(() => setCopiedFont(null), 2000);
+    } catch (err) {
+      console.error('フォント名のコピーに失敗しました:', err);
+    }
+  };
+
+  // ★ 変更点: ローカルフォントを読み込む関数を追加
+  const loadLocalFonts = async () => {
+    if (!('queryLocalFonts' in window)) {
+      alert('お使いのブラウザはローカルフォントの読み込みに対応していません。');
+      return;
+    }
+    try {
+      const availableFonts: FontMetadata[] = await window.queryLocalFonts!();
+
+      const familyMap = new Map<string, FontData>();
+      availableFonts.forEach(font => {
+        if (!familyMap.has(font.family)) {
+          familyMap.set(font.family, {
+            name: font.family,
+            family: `"${font.family}"`,
+            category: 'ローカル',
+          });
+        }
+      });
+
+      const uniqueFamilies = Array.from(familyMap.values());
+
+      const jaFonts: FontData[] = [];
+      const enFonts: FontData[] = [];
+
+      uniqueFamilies.forEach(fontData => {
+        if (isJapaneseFont(fontData.name)) {
+          jaFonts.push(fontData);
+        } else {
+          enFonts.push(fontData);
+        }
+      });
+
+      setLocalJapaneseFonts(jaFonts);
+      setLocalEnglishFonts(enFonts);
+
+      alert(`読み込みが完了しました。\n日本語フォントファミリー: ${jaFonts.length}個\n英語フォントファミリー: ${enFonts.length}個`);
+
+    } catch (err) {
+      console.error('ローカルフォントの読み込みに失敗しました:', err);
+      alert('フォントの読み込みがキャンセルされたか、エラーが発生しました。');
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-white">
+      
+      {/* ★★★ すべてのコンテンツをこの一つのマスターコンテナで囲みます ★★★ */}
+      <div className="max-w-9xl mx-auto px-6 py-16">
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+        {/* --- ヘッダーエリア --- */}
+        <header className="text-center mb-16">
+          <h1 className="text-4xl md:text-3xl font-light text-black mb-6 tracking-tight">
+            Simple Font Viewer - フォント比較ができるビューアーツール -
+          </h1>
+          <div className="w-24 h-px bg-black mx-auto"></div>
+        </header>
+
+        {/* --- コントロール＆フォントリストエリア --- */}
+        <main className="mb-24">
+          {/* コントロール */}
+          <section className="bg-white border-2 border-gray-200 rounded-none shadow-lg mb-12">
+            <div className="p-6 md:p-10">
+              <div className="space-y-8">
+                {/* テキスト入力 */}
+                <div>
+                  <h2 className="text-sm font-medium text-gray-900 mb-3 uppercase tracking-wider">
+                    プレビューテキスト
+                  </h2>
+                  <input
+                    id="preview-text"
+                    type="text"
+                    value={previewText}
+                    onChange={(e) => setPreviewText(e.target.value)}
+                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-300 rounded-none text-black placeholder-gray-500 focus:border-black focus:bg-white transition-all duration-300 text-lg font-light"
+                    placeholder="フォントをプレビューするテキストを入力..."
+                  />
+                </div>
+
+                {/* 操作パネル */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end pt-8 border-t-2 border-gray-100">
+                  {/* 1. 言語切り替え */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Languages className="w-5 h-5 text-gray-600" />
+                      <span className="text-sm font-medium text-gray-600 uppercase tracking-wider">言語</span>
+                    </div>
+                    <button
+                      onClick={handleLanguageToggle}
+                      className={`relative inline-flex items-center px-8 py-3 rounded-none transition-all duration-300 font-medium border-2 ${isJapanese
+                        ? 'bg-black text-white border-black shadow-lg'
+                        : 'bg-white text-black border-gray-300 hover:border-black'
+                      }`}
+                    >
+                      {isJapanese ? '日本語' : 'English'}
+                    </button>
+                  </div>
+                  {/* 2. フォントサイズ調整 */}
+                  <div>
+                    <h2 className="text-sm font-medium text-gray-600 mb-2 uppercase tracking-wider">
+                      フォントサイズ: {sliderValue}px
+                    </h2>
+                    <input
+                      id="font-size"
+                      type="range"
+                      min="12"
+                      max="72"
+                      value={sliderValue}
+                      onChange={(e) => setSliderValue(Number(e.target.value))}
+                      className="w-full h-2 bg-gray-200 rounded-none appearance-none cursor-pointer"
+                    />
+                  </div>
+                  {/* 3. PCフォント読み込みボタン */}
+                  <div>
+                    <button
+                      onClick={loadLocalFonts}
+                      className="w-full flex items-center justify-center space-x-3 px-8 py-3 bg-white text-black border-2 border-gray-300 rounded-none transition-all duration-300 hover:border-black group"
+                    >
+                      <FolderDown className="w-5 h-5 text-gray-500 group-hover:text-black transition-colors" />
+                      <span className="text-sm font-medium uppercase tracking-wider text-gray-700 group-hover:text-black transition-colors">
+                        PCフォントを読み込む
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* フォントリスト */}
+          <section>
+            <div className="mb-4 text-gray-600">
+              <p>{isJapanese ? '日本語フォント' : '英語フォント'} ({filteredFonts.length}件)</p>
+            </div>
+            {filteredFonts.length === 0 ? (
+              <div className="border-2 border-gray-200 rounded-none p-16 text-center">
+                <div className="text-gray-600 text-xl mb-3 font-light">フォントが見つかりません</div>
+                <div className="text-gray-400 text-sm uppercase tracking-wider">検索条件やフィルター条件を調整してください</div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap gap-4">
+                {filteredFonts.map((font) => (
+                  <div key={font.name} className="border border-gray-200 bg-white hover:shadow-lg hover:border-black transition-all duration-200 p-4 rounded-none flex flex-col items-center justify-center min-w-[160px]">
+                    <div className="overflow-hidden">
+                      <p className="text-center break-all text-black" style={{ fontFamily: font.family, fontSize: `${debouncedFontSize}px`, whiteSpace: 'nowrap', lineHeight: 1.2 }}>
+                        {previewText}
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-3 text-center truncate w-full">
+                      {font.name}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        </main>
+
+        {/* --- 説明文フッターエリア --- */}
+        {/* ★ 変更点: 背景色や全幅設定を削除し、シンプルなdivに */}
+        <div className="border-t border-gray-200 pt-16">
+          <h2 className="text-xl font-medium text-black mb-4 text-center">Simple Font Viewerについて</h2>
+          {/* ★ 変更点: text-leftで左揃えにし、中央揃え用のクラスを削除 */}
+          <div className="text-left text-sm text-gray-600 leading-relaxed space-y-4">
+            <p>
+              Simple Font Viewerは、デザイナー・開発者などを行うすべての方のための、オンラインフォント比較ビューアーツールです。プレビューしたいテキストを入力し、フォントサイズを調整するだけで、様々な日本語・英語フォントがどのように表示されるかをリアルタイムで確認できます。さらに、「PCフォントを読み込む」機能を使えば、あなたのコンピュータにインストールされているお気に入りのフォントも一覧で比較可能です。最適なフォントを見つけるための時間と手間を、大幅に削減します。
+            </p>
+            <p className="text-xs text-gray-500">
+              フォントの利用可能性は、お使いのオペレーティングシステムとインストールされているフォントによって異なります。
+              {isJapanese && '日本語フォントには適切なシステムサポートが必要な場合があります。'}
+              また日本語・英語フォントを100%判別できかねるため、ご了承お願いいたします。
+            </p>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        {/* --- コピーライトフッターエリア --- */}
+        <footer className="text-center pt-16">
+          <div className="text-sm text-gray-400">
+            <p>
+              &copy; 2025 | Powered by{' '}
+              <a href="https://www.simple-font-viewer.com/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">
+                Simple Font Viewer
+              </a>
+            </p>
+          </div>
+        </footer>
+
+      </div> 
+
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 12px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f5f5f5;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #d1d5db;
+          border-radius: 0;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #9ca3af;
+        }
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 20px;
+          width: 20px;
+          border-radius: 0;
+          background: #000;
+          cursor: pointer;
+          border: 2px solid #fff;
+          box-shadow: 0 0 0 1px #000;
+        }
+        .slider::-moz-range-thumb {
+          height: 20px;
+          width: 20px;
+          border-radius: 0;
+          background: #000;
+          cursor: pointer;
+          border: 2px solid #fff;
+          box-shadow: 0 0 0 1px #000;
+        }
+      `}</style>
     </div>
   );
 }
+
+export default App;
