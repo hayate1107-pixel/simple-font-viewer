@@ -6,7 +6,7 @@ import './globals.css';
 // SEOのためのメタデータ
 export const metadata: Metadata = {
   title: '【フォント比較】ができるフォントビューアーツール | Simple Font Viewer',
-  description: 'シンプルなフォントビューアーツールです。日本語・英語のフォント切り替え、あなたのPCにインストール済みのローカルフォントを、入力したテキストで瞬時にフォント比較・プレビューできるフォントビューアーツール。デザイナーや開発者のフォント選びを効率化します。',
+  description: 'こんな分かりやすいフォント比較できるビューワーツール見たことがない',
 };
 
 export default function RootLayout({
