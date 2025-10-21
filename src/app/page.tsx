@@ -255,7 +255,7 @@ function App() {
 
         {/* --- ヘッダーエリア --- */}
         <header className="text-center mb-16">
-          <h1 className="text-4xl md:text-3xl font-light text-black mb-6 tracking-tight">
+          <h1 className="text-4xl md:text-xl font-light text-black mb-6 tracking-tight">
             Simple Font Viewer - フォント比較ができるビューアーツール -
           </h1>
           <div className="w-24 h-px bg-black mx-auto"></div>
