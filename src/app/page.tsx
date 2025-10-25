@@ -150,7 +150,7 @@ const categoryColors = {
   'ローカル': 'bg-blue-100 text-blue-800 border-blue-300',
 };
 
-function App() {
+export default function HomePage() {
   const [previewText, setPreviewText] = useState('素早い茶色の狐が怠惰な犬を飛び越える');
   const [isJapanese, setIsJapanese] = useState(true);
   const [copiedFont, setCopiedFont] = useState<string | null>(null);
@@ -160,6 +160,7 @@ function App() {
   const debouncedFontSize = useDebounce(sliderValue, 200); // 200ms遅延して更新される値
   const [localJapaneseFonts, setLocalJapaneseFonts] = useState<FontData[]>([]);
   const [localEnglishFonts, setLocalEnglishFonts] = useState<FontData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const defaultJapaneseText = 'いろはにほへと ちりぬるを わかよたれそ つねならむ';
   const defaultEnglishText = 'The quick brown fox jumps over the lazy dog';
@@ -183,14 +184,27 @@ function App() {
   });
 
   const handleLanguageToggle = () => {
-    setIsJapanese(!isJapanese);
-    setSearchQuery('');
-    setSelectedCategory('すべて');
-    if (!isJapanese) {
-      setPreviewText(defaultJapaneseText);
-    } else {
-      setPreviewText(defaultEnglishText);
-    }
+    setIsLoading(true); // ★ まずローディングを開始
+
+    // わずかに遅延させることで、ReactがローディングUIを確実に描画する時間を与える
+    setTimeout(() => {
+      // 検索クエリとカテゴリをリセット
+      setSearchQuery('');
+      setSelectedCategory('すべて');
+      
+      // isJapaneseの値を更新し、それに基づいてプレビューテキストも更新
+      setIsJapanese(prevIsJapanese => {
+        const newIsJapanese = !prevIsJapanese;
+        if (newIsJapanese) {
+          setPreviewText(defaultJapaneseText);
+        } else {
+          setPreviewText(defaultEnglishText);
+        }
+        return newIsJapanese; // 新しいisJapaneseの値を返す
+      });
+
+      setIsLoading(false); // ★ すべての状態更新が終わったらローディングを終了
+    }, 50); // 50ミリ秒の遅延
   };
 
   const copyFontName = async (fontName: string) => { // ★ 変更点: 引数名と処理を修正
@@ -209,6 +223,9 @@ function App() {
       alert('お使いのブラウザはローカルフォントの読み込みに対応していません。');
       return;
     }
+
+    setIsLoading(true);
+
     try {
       const availableFonts: FontMetadata[] = await window.queryLocalFonts!();
 
@@ -244,15 +261,24 @@ function App() {
     } catch (err) {
       console.error('ローカルフォントの読み込みに失敗しました:', err);
       alert('フォントの読み込みがキャンセルされたか、エラーが発生しました。');
+    } finally {
+      setIsLoading(false); // ★ 成功しても失敗しても、必ずローディングを終了
     }
   };
-
-  return (
+return (
     <div className="min-h-screen bg-white">
-      
-      {/* ★★★ すべてのコンテンツをこの一つのマスターコンテナで囲みます ★★★ */}
-      <div className="max-w-9xl mx-auto px-6 py-16">
 
+      {/* --- マスターコンテナ --- */}
+      {/* 
+        ローディング中は、このコンテナ全体が半透明になり、操作不能になる
+        これにより、コンテンツが消えることなく、安定したUXを提供
+      */}
+      <div 
+        className={`relative max-w-9xl mx-auto px-6 py-16 transition-opacity duration-300 ${
+          isLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'
+        }`}
+      >
+        
         {/* --- ヘッダーエリア --- */}
         <header className="text-center mb-16">
           <h1 className="text-4xl md:text-xl font-light text-black mb-6 tracking-tight">
@@ -295,7 +321,7 @@ function App() {
                       className={`relative inline-flex items-center px-8 py-3 rounded-none transition-all duration-300 font-medium border-2 ${isJapanese
                         ? 'bg-black text-white border-black shadow-lg'
                         : 'bg-white text-black border-gray-300 hover:border-black'
-                      }`}
+                        }`}
                     >
                       {isJapanese ? '日本語' : 'English'}
                     </button>
@@ -362,10 +388,8 @@ function App() {
         </main>
 
         {/* --- 説明文フッターエリア --- */}
-        {/* ★ 変更点: 背景色や全幅設定を削除し、シンプルなdivに */}
         <div className="border-t border-gray-200 pt-16">
           <h2 className="text-xl font-medium text-black mb-4 text-center">Simple Font Viewerについて</h2>
-          {/* ★ 変更点: text-leftで左揃えにし、中央揃え用のクラスを削除 */}
           <div className="text-left text-sm text-gray-600 leading-relaxed space-y-4">
             <p>
               Simple Font Viewerは、デザイナー・開発者などを行うすべての方のための、オンラインフォント比較ビューアーツールです。プレビューしたいテキストを入力し、フォントサイズを調整するだけで、様々な日本語・英語フォントがどのように表示されるかをリアルタイムで確認できます。さらに、「PCフォントを読み込む」機能を使えば、あなたのコンピュータにインストールされているお気に入りのフォントも一覧で比較可能です。最適なフォントを見つけるための時間と手間を、大幅に削減します。
@@ -384,15 +408,32 @@ function App() {
             <p>
               &copy; 2025 | Powered by{' '}
               <a href="https://www.simple-font-viewer.com/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">
-                Simple Font Viewer
+                W Design.
               </a>
             </p>
           </div>
         </footer>
 
-      </div> 
+      </div>
+      
+      {/* --- ローディングUI --- */}
+      {/* 
+        このUIはメインコンテンツとは兄弟要素として配置する
+        これにより、Reactの再描画サイクルの影響を受けずに、独立して表示/非表示を切り替えられる
+      */}
+      {isLoading && (
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-4 p-8 bg-white rounded-lg shadow-xl">
+            <svg className="animate-spin h-10 w-10 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="text-sm text-gray-700">読み込み中...</p>
+          </div>
+        </div>
+      )}
 
-
+      {/* このコンポーネントにスコープされたスタイル */}
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 12px;
@@ -430,5 +471,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
