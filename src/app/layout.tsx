@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import Script from 'next/script'; // Scriptコンポーネントをインポート
 import './globals.css';
-// import { AnalyticsEvents } from '../components/AnalyticsEvents'; // AnalyticsEventsは一旦後回しにします
 
 // SEOのためのメタデータ
 export const metadata: Metadata = {
@@ -16,10 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      {/* Google Analyticsのコードをここに配置 */}
+      {/* --- Google Analyticsのスクリプト --- */}
       <Script
         strategy="afterInteractive"
-        src={`https://www.googletagmanager.com/gtag/js?id=G-3N217MK6JB`}
+        src={`https://www.googletagmanager.com/gtag/js?id=G-3N21T7MK6JB`} // あなたのGA ID
       />
       <Script
         id="gtag-init"
@@ -29,10 +28,27 @@ export default function RootLayout({
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-3N217MK6JB');
+            gtag('config', 'G-3N217MK6JB'); // あなたのGA ID
           `,
         }}
       />
+
+      {/* --- Microsoft Clarityのスクリプト --- */}
+      {/* ★ 変更点: 通常の<script>タグを、Next.jsの<Script>コンポーネントに書き換え */}
+      <Script
+        id="clarity-init"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `
+            (function(c,l,a,r,i,t,y){
+                c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+                t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+                y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+            })(window, document, "clarity", "script", "txnu40b97q"); // あなたのClarity ID
+          `,
+        }}
+      />
+      
       <body>
         {children}
       </body>
