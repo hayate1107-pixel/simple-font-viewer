@@ -330,7 +330,7 @@ export default function HomePage() {
                             : 'text-gray-400 hover:text-black'
                         }`}
                       >
-                        JP
+                        JP フォント
                       </button>
                       <span className="text-gray-300 select-none">|</span>
                       
@@ -342,7 +342,7 @@ export default function HomePage() {
                             : 'text-gray-400 hover:text-black'
                         }`}
                       >
-                        EN
+                        EN フォント
                       </button>
                     </div>
                   </div>
@@ -371,7 +371,7 @@ export default function HomePage() {
                     >
                       <FolderDown className="w-5 h-5 text-gray-500 group-hover:text-black transition-colors" />
                       <span className="text-sm font-medium uppercase tracking-wider text-gray-700 group-hover:text-black transition-colors">
-                        PCフォントを読み込む
+                        PC内フォントを読み込む
                       </span>
                     </button>
                   </div>
