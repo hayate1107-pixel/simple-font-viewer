@@ -183,28 +183,31 @@ export default function HomePage() {
     return matchesSearch && matchesCategory;
   });
 
-  const handleLanguageToggle = () => {
-    setIsLoading(true); // ★ まずローディングを開始
+  const handleLanguageToggle = (isJpSelected: boolean) => {
+    // すでに選択されている言語を再度クリックした場合は、何もしない
+    if (isJpSelected === isJapanese) {
+      return;
+    }
 
-    // わずかに遅延させることで、ReactがローディングUIを確実に描画する時間を与える
+    setIsLoading(true); // ローディングを開始
+
     setTimeout(() => {
       // 検索クエリとカテゴリをリセット
       setSearchQuery('');
       setSelectedCategory('すべて');
-      
-      // isJapaneseの値を更新し、それに基づいてプレビューテキストも更新
-      setIsJapanese(prevIsJapanese => {
-        const newIsJapanese = !prevIsJapanese;
-        if (newIsJapanese) {
-          setPreviewText(defaultJapaneseText);
-        } else {
-          setPreviewText(defaultEnglishText);
-        }
-        return newIsJapanese; // 新しいisJapaneseの値を返す
-      });
 
-      setIsLoading(false); // ★ すべての状態更新が終わったらローディングを終了
-    }, 50); // 50ミリ秒の遅延
+      // 新しく選択された言語を設定
+      setIsJapanese(isJpSelected);
+
+      // プレビューテキストを更新
+      if (isJpSelected) {
+        setPreviewText(defaultJapaneseText);
+      } else {
+        setPreviewText(defaultEnglishText);
+      }
+
+      setIsLoading(false); // ローディングを終了
+    }, 50);
   };
 
   const copyFontName = async (fontName: string) => { // ★ 変更点: 引数名と処理を修正
@@ -265,7 +268,7 @@ export default function HomePage() {
       setIsLoading(false); // ★ 成功しても失敗しても、必ずローディングを終了
     }
   };
-return (
+  return (
     <div className="min-h-screen bg-white">
 
       {/* --- マスターコンテナ --- */}
@@ -273,12 +276,11 @@ return (
         ローディング中は、このコンテナ全体が半透明になり、操作不能になる
         これにより、コンテンツが消えることなく、安定したUXを提供
       */}
-      <div 
-        className={`relative max-w-9xl mx-auto px-6 py-16 transition-opacity duration-300 ${
-          isLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'
-        }`}
+      <div
+        className={`relative max-w-9xl mx-auto px-6 py-16 transition-opacity duration-300 ${isLoading ? 'opacity-50 pointer-events-none' : 'opacity-100'
+          }`}
       >
-        
+
         {/* --- ヘッダーエリア --- */}
         <header className="text-center mb-16">
           <h1 className="text-4xl md:text-xl font-light text-black mb-6 tracking-tight">
@@ -304,32 +306,51 @@ return (
                     value={previewText}
                     onChange={(e) => setPreviewText(e.target.value)}
                     className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-300 rounded-none text-black placeholder-gray-500 focus:border-black focus:bg-white transition-all duration-300 text-lg font-light"
-                    placeholder="フォントをプレビューするテキストを入力..."
+                    placeholder="プレビューテキストを入力..."
                   />
                 </div>
 
+               
                 {/* 操作パネル */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end pt-8 border-t-2 border-gray-100">
-                  {/* 1. 言語切り替え */}
+                  
+                  {/* --- 1. 言語切り替え --- */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <Languages className="w-5 h-5 text-gray-600" />
-                      <span className="text-sm font-medium text-gray-600 uppercase tracking-wider">言語</span>
+                      <span className="text-sm font-medium text-gray-600 uppercase tracking-wider">言語切替</span>
                     </div>
-                    <button
-                      onClick={handleLanguageToggle}
-                      className={`relative inline-flex items-center px-8 py-3 rounded-none transition-all duration-300 font-medium border-2 ${isJapanese
-                        ? 'bg-black text-white border-black shadow-lg'
-                        : 'bg-white text-black border-gray-300 hover:border-black'
+                    
+                    <div className="flex items-center space-x-4 text-base">
+                      <button
+                        onClick={() => handleLanguageToggle(true)}
+                        className={`font-semibold transition-colors duration-200 pb-1 ${
+                          isJapanese 
+                            ? 'text-black border-b-2 border-black' 
+                            : 'text-gray-400 hover:text-black'
                         }`}
-                    >
-                      {isJapanese ? '日本語' : 'English'}
-                    </button>
+                      >
+                        JP
+                      </button>
+                      <span className="text-gray-300 select-none">|</span>
+                      
+                      <button
+                        onClick={() => handleLanguageToggle(false)}
+                        className={`font-semibold transition-colors duration-200 pb-1 ${
+                          !isJapanese 
+                            ? 'text-black border-b-2 border-black' 
+                            : 'text-gray-400 hover:text-black'
+                        }`}
+                      >
+                        EN
+                      </button>
+                    </div>
                   </div>
-                  {/* 2. フォントサイズ調整 */}
+
+                  {/* --- 2. フォントサイズ調整 --- */}
                   <div>
                     <h2 className="text-sm font-medium text-gray-600 mb-2 uppercase tracking-wider">
-                      フォントサイズ: {sliderValue}px
+                      フォントサイズ: {sliderValue} px
                     </h2>
                     <input
                       id="font-size"
@@ -341,7 +362,8 @@ return (
                       className="w-full h-2 bg-gray-200 rounded-none appearance-none cursor-pointer"
                     />
                   </div>
-                  {/* 3. PCフォント読み込みボタン */}
+
+                  {/* --- 3. PCフォント読み込みボタン --- */}
                   <div>
                     <button
                       onClick={loadLocalFonts}
@@ -353,6 +375,7 @@ return (
                       </span>
                     </button>
                   </div>
+                  
                 </div>
               </div>
             </div>
@@ -361,7 +384,9 @@ return (
           {/* フォントリスト */}
           <section>
             <div className="mb-4 text-gray-600">
-              <p>{isJapanese ? '日本語フォント' : '英語フォント'} ({filteredFonts.length}件)</p>
+              <p>
+                {`${isJapanese ? '日本語フォント' : '英語フォント'} (${filteredFonts.length}件)`}
+              </p>
             </div>
             {filteredFonts.length === 0 ? (
               <div className="border-2 border-gray-200 rounded-none p-16 text-center">
@@ -395,10 +420,10 @@ return (
               Simple Font Viewerは、デザイナー・開発者などすべての方のためのオンラインフォント比較ビューアーツールです。プレビューしたいテキストを入力し、フォントサイズを調整するだけで、様々な日本語・英語フォントがどのように表示されるかをリアルタイムで確認できます。さらに、「PCフォントを読み込む」機能を使えば、あなたのパソコンにインストールされているお気に入りのフォントも一覧で比較可能です。日本語・英語フォントを判別し読み込むため言語ボタンで切り替え可能。オフラインでもプレビューテキスト変更・フォント読み込み・言語切替などフォント比較ができます。最適なフォントを見つけるための時間と手間を、大幅に削減します。
             </p>
             <p>
-【プライバシーとセキュリティ】PCフォントを読み込む機能はPC内のフォント名のみを取得し、その他のファイルやデータには一切アクセスしません。読み込んだフォント情報はあなたのブラウザ内でのみ処理され、外部サーバーには送信されません。PCフォントを読み込む・言語切替含め、当ツールはオフラインでの利用も可能です。(ただし一度オンラインで当サイトを読み込む必要があります)ログインや個人情報の登録は不要で、利用料金もかかりません。すべての処理はブラウザ内で完結するため、安心して安全にご利用いただけます。
+              【プライバシーとセキュリティ】PCフォントを読み込む機能はPC内のフォント名のみを取得し、その他のファイルやデータには一切アクセスしません。読み込んだフォント情報はあなたのブラウザ内でのみ処理され、外部サーバーには送信されません。PCフォントを読み込む・言語切替含め、当ツールはオフラインでの利用も可能です。(ただし一度オンラインで当サイトを読み込む必要があります)ログインや個人情報の登録は不要で、利用料金もかかりません。すべての処理はブラウザ内で完結するため、安心して安全にご利用いただけます。
             </p>
             <p className="text-xs text-gray-500">
-              フォントの利用可能性は、お使いのオペレーティングシステムとインストールされているフォントによって異なります。
+              フォントの利用可能性は、お使いのオペレーティングシステムとインストールされているフォントによって異なります。モバイル端末には対応しておりません。
               {isJapanese && '日本語フォントには適切なシステムサポートが必要な場合があります。'}
               また日本語・英語フォントを100%判別できかねるため、ご了承お願いいたします。当ツールの利用によって生じたトラブル・損害などについては保証や責任を負いかねます。
             </p>
@@ -407,9 +432,9 @@ return (
 
         {/* --- コピーライトフッターエリア --- */}
         <footer className="text-center pt-16">
-                    {/* SNSアイコン */}
-                    <div className="flex justify-center mb-8">
-            <a 
+          {/* SNSアイコン */}
+          <div className="flex justify-center mb-8">
+            <a
               href="https://x.com/STYLEW142324"
               target="_blank"
               rel="noopener noreferrer"
@@ -418,14 +443,14 @@ return (
               className="p-2.5 bg-gray-900 rounded-full text-white hover:bg-gray-700 transition-colors duration-300"
             >
               {/* ★ 変更点: <Twitter /> の代わりに、SVGコードを直接記述 */}
-              <svg 
-                role="img" 
-                viewBox="0 0 24 24" 
+              <svg
+                role="img"
+                viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg"
                 // ★ 変更点: Tailwind CSSでサイズと色を制御
-                className="w-5 h-5 fill-current" 
+                className="w-5 h-5 fill-current"
               >
-                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/>
+                <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
               </svg>
             </a>
           </div>
@@ -440,7 +465,7 @@ return (
         </footer>
 
       </div>
-      
+
       {/* --- ローディングUI --- */}
       {/* 
         このUIはメインコンテンツとは兄弟要素として配置する
