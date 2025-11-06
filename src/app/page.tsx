@@ -161,9 +161,14 @@ export default function HomePage() {
   const [localJapaneseFonts, setLocalJapaneseFonts] = useState<FontData[]>([]);
   const [localEnglishFonts, setLocalEnglishFonts] = useState<FontData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [toastPosition, setToastPosition] = useState({ x: 0, y: 0 });
+  const [showToast, setShowToast] = useState(false);
+
+  const [hasUserEditedText, setHasUserEditedText] = useState(false);
 
   const defaultJapaneseText = 'いろはにほへと ちりぬるを わかよたれそ つねならむ';
   const defaultEnglishText = 'The quick brown fox jumps over the lazy dog';
+
 
   const currentFonts = useMemo(() => {
     const baseFonts = isJapanese ? japaneseFonts : englishFonts;
@@ -200,21 +205,38 @@ export default function HomePage() {
       setIsJapanese(isJpSelected);
 
       // プレビューテキストを更新
-      if (isJpSelected) {
-        setPreviewText(defaultJapaneseText);
-      } else {
-        setPreviewText(defaultEnglishText);
+      if (!hasUserEditedText) {
+        if (isJpSelected) {
+          setPreviewText(defaultJapaneseText);
+        } else {
+          setPreviewText(defaultEnglishText);
+        }
       }
 
       setIsLoading(false); // ローディングを終了
     }, 50);
   };
 
-  const copyFontName = async (fontName: string) => { // ★ 変更点: 引数名と処理を修正
+    const handleCardClick = async (fontName: string, event: React.MouseEvent<HTMLDivElement>) => {
     try {
+      // 1. フォント名をクリップボードにコピー
       await navigator.clipboard.writeText(fontName);
+
+      // 2. メッセージを表示する位置を設定
+      setToastPosition({ x: event.clientX, y: event.clientY });
+
+      // 3. メッセージを表示
+      setShowToast(true);
+
+      // (オプション) どのフォントがコピーされたか記録
       setCopiedFont(fontName);
-      setTimeout(() => setCopiedFont(null), 2000);
+
+      // 4. 2秒後にメッセージを非表示にする
+      setTimeout(() => {
+        setShowToast(false);
+        setCopiedFont(null);
+      }, 2000);
+
     } catch (err) {
       console.error('フォント名のコピーに失敗しました:', err);
     }
@@ -271,6 +293,26 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
 
+            {/* ★★★ トーストメッセージのUIを追加 ★★★ */}
+      {showToast && (
+        <div 
+          className="fixed py-2 px-4 bg-black text-white text-sm rounded-md shadow-lg transition-opacity duration-300 z-50"
+          style={{ 
+            left: `${toastPosition.x}px`, 
+            top: `${toastPosition.y}px`,
+            transform: 'translate(-50%, -120%)', // カーソルの少し上に表示
+           }}
+        >
+          <span>
+            フォント名をコピーしました！
+            <br />
+            <span className="text-xs text-gray-300">
+              ※お使いのソフトによってフォント名が日本語表記に変更されている場合があります
+            </span>
+          </span>
+        </div>
+      )}
+
       {/* --- マスターコンテナ --- */}
       {/* 
         ローディング中は、このコンテナ全体が半透明になり、操作不能になる
@@ -304,43 +346,44 @@ export default function HomePage() {
                     id="preview-text"
                     type="text"
                     value={previewText}
-                    onChange={(e) => setPreviewText(e.target.value)}
+                    onChange={(e) => {
+                      setPreviewText(e.target.value);
+                      setHasUserEditedText(true);
+                    }}
                     className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-300 rounded-none text-black placeholder-gray-500 focus:border-black focus:bg-white transition-all duration-300 text-lg font-light"
                     placeholder="プレビューテキストを入力..."
                   />
                 </div>
 
-               
+
                 {/* 操作パネル */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end pt-8 border-t-2 border-gray-100">
-                  
+
                   {/* --- 1. 言語切り替え --- */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <Languages className="w-5 h-5 text-gray-600" />
                       <span className="text-sm font-medium text-gray-600 uppercase tracking-wider">言語切替</span>
                     </div>
-                    
+
                     <div className="flex items-center space-x-4 text-base">
                       <button
                         onClick={() => handleLanguageToggle(true)}
-                        className={`font-semibold transition-colors duration-200 pb-1 ${
-                          isJapanese 
-                            ? 'text-black border-b-2 border-black' 
+                        className={`font-semibold transition-colors duration-200 pb-1 ${isJapanese
+                            ? 'text-black border-b-2 border-black'
                             : 'text-gray-400 hover:text-black'
-                        }`}
+                          }`}
                       >
                         JP フォント
                       </button>
                       <span className="text-gray-300 select-none">|</span>
-                      
+
                       <button
                         onClick={() => handleLanguageToggle(false)}
-                        className={`font-semibold transition-colors duration-200 pb-1 ${
-                          !isJapanese 
-                            ? 'text-black border-b-2 border-black' 
+                        className={`font-semibold transition-colors duration-200 pb-1 ${!isJapanese
+                            ? 'text-black border-b-2 border-black'
                             : 'text-gray-400 hover:text-black'
-                        }`}
+                          }`}
                       >
                         EN フォント
                       </button>
@@ -375,7 +418,7 @@ export default function HomePage() {
                       </span>
                     </button>
                   </div>
-                  
+
                 </div>
               </div>
             </div>
@@ -396,7 +439,7 @@ export default function HomePage() {
             ) : (
               <div className="flex flex-wrap gap-4">
                 {filteredFonts.map((font) => (
-                  <div key={font.name} className="border border-gray-200 bg-white hover:shadow-lg hover:border-black transition-all duration-200 p-4 rounded-none flex flex-col items-center justify-center min-w-[160px]">
+                  <div key={font.name} className="border border-gray-200 bg-white hover:shadow-lg hover:border-black transition-all duration-200 p-4 rounded-none flex flex-col items-center justify-center min-w-[160px] cursor-pointer" onClick={(e) => handleCardClick(font.name, e)}>
                     <div className="overflow-hidden">
                       <p className="text-center break-all text-black" style={{ fontFamily: font.family, fontSize: `${debouncedFontSize}px`, whiteSpace: 'nowrap', lineHeight: 1.2 }}>
                         {previewText}
