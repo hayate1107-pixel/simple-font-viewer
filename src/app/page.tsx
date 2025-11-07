@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
-import { Type, Languages, Copy, Check, Search, Filter, FolderDown } from 'lucide-react';
+import { Type, Languages, Copy, Check, Search, Filter, FolderDown, Mail } from 'lucide-react';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -217,7 +217,7 @@ export default function HomePage() {
     }, 50);
   };
 
-    const handleCardClick = async (fontName: string, event: React.MouseEvent<HTMLDivElement>) => {
+  const handleCardClick = async (fontName: string, event: React.MouseEvent<HTMLDivElement>) => {
     try {
       // 1. フォント名をクリップボードにコピー
       await navigator.clipboard.writeText(fontName);
@@ -293,15 +293,15 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
 
-            {/* ★★★ トーストメッセージのUIを追加 ★★★ */}
+      {/* ★★★ トーストメッセージのUIを追加 ★★★ */}
       {showToast && (
-        <div 
+        <div
           className="fixed py-2 px-4 bg-black text-white text-sm rounded-md shadow-lg transition-opacity duration-300 z-50"
-          style={{ 
-            left: `${toastPosition.x}px`, 
+          style={{
+            left: `${toastPosition.x}px`,
             top: `${toastPosition.y}px`,
             transform: 'translate(-50%, -120%)', // カーソルの少し上に表示
-           }}
+          }}
         >
           <span>
             フォント名をコピーしました！
@@ -370,8 +370,8 @@ export default function HomePage() {
                       <button
                         onClick={() => handleLanguageToggle(true)}
                         className={`font-semibold transition-colors duration-200 pb-1 ${isJapanese
-                            ? 'text-black border-b-2 border-black'
-                            : 'text-gray-400 hover:text-black'
+                          ? 'text-black border-b-2 border-black'
+                          : 'text-gray-400 hover:text-black'
                           }`}
                       >
                         JP フォント
@@ -381,8 +381,8 @@ export default function HomePage() {
                       <button
                         onClick={() => handleLanguageToggle(false)}
                         className={`font-semibold transition-colors duration-200 pb-1 ${!isJapanese
-                            ? 'text-black border-b-2 border-black'
-                            : 'text-gray-400 hover:text-black'
+                          ? 'text-black border-b-2 border-black'
+                          : 'text-gray-400 hover:text-black'
                           }`}
                       >
                         EN フォント
@@ -476,7 +476,7 @@ export default function HomePage() {
         {/* --- コピーライトフッターエリア --- */}
         <footer className="text-center pt-16">
           {/* SNSアイコン */}
-          <div className="flex justify-center mb-8">
+          <div className="flex justify-center items-center space-x-4 mb-8">
             <a
               href="https://x.com/STYLEW142324"
               target="_blank"
@@ -495,6 +495,14 @@ export default function HomePage() {
               >
                 <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z" />
               </svg>
+            </a>
+
+            <a
+              href="mailto:wstylejapan@gmail.com"
+              aria-label="Contact via Email"
+              className="p-2.5 bg-white border border-gray-400 rounded-full text-gray-600 hover:bg-gray-100 hover:border-gray-500 transition-colors duration-300"
+            >
+              <Mail size={20} strokeWidth={1.5} />
             </a>
           </div>
           <div className="text-sm text-gray-400">
