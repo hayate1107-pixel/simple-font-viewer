@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
-import { Type, Languages, Copy, Check, Search, Filter, FolderDown, Mail } from 'lucide-react';
+import { Type, Languages, Copy, Check, Search, Filter, FolderDown, Mail, Shuffle } from 'lucide-react';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -166,6 +166,8 @@ export default function HomePage() {
 
   const [hasUserEditedText, setHasUserEditedText] = useState(false);
 
+  const [displayedFonts, setDisplayedFonts] = useState<FontData[]>([]);
+
   const defaultJapaneseText = 'いろはにほへと ちりぬるを わかよたれそ つねならむ';
   const defaultEnglishText = 'The quick brown fox jumps over the lazy dog';
 
@@ -182,11 +184,18 @@ export default function HomePage() {
 
   const categories = ['すべて', ...Array.from(new Set(currentFonts.map(font => font.category)))];
 
-  const filteredFonts = currentFonts.filter(font => {
-    const matchesSearch = font.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'すべて' || font.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+    const filteredFonts = useMemo(() => {
+    return currentFonts.filter(font => {
+      const matchesSearch = font.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = selectedCategory === 'すべて' || font.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [currentFonts, searchQuery, selectedCategory]); 
+
+    useEffect(() => {
+    // フィルターされたリストが変更されたら、表示用リストを更新（リセット）する
+    setDisplayedFonts(filteredFonts);
+  }, [filteredFonts]);
 
   const handleLanguageToggle = (isJpSelected: boolean) => {
     // すでに選択されている言語を再度クリックした場合は、何もしない
@@ -290,6 +299,29 @@ export default function HomePage() {
       setIsLoading(false); // ★ 成功しても失敗しても、必ずローディングを終了
     }
   };
+
+    const handleShuffle = () => {
+    // Fisher-Yates (Knuth) Shuffleアルゴリズムで配列をシャッフル
+    const shuffle = (array: FontData[]) => {
+      let currentIndex = array.length,  randomIndex;
+  
+      // 残りの要素がある間...
+      while (currentIndex !== 0) {
+        // 残りの要素からランダムな要素を選ぶ...
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+  
+        // そして現在の要素と交換する
+        [array[currentIndex], array[randomIndex]] = [
+          array[randomIndex], array[currentIndex]];
+      }
+      return array;
+    };
+    
+    // 現在の表示リストのコピーをシャッフルし、Stateを更新する
+    setDisplayedFonts(shuffle([...displayedFonts]));
+  };
+
   return (
     <div className="min-h-screen bg-white">
 
@@ -426,11 +458,21 @@ export default function HomePage() {
 
           {/* フォントリスト */}
           <section>
-            <div className="mb-4 text-gray-600">
+                        <div className="mb-4 text-gray-600 flex items-center">
               <p>
                 {`${isJapanese ? '日本語フォント' : '英語フォント'} (${filteredFonts.length}件)`}
               </p>
+
+              {/* ★ シャッフルボタンを追加 ★ */}
+                            <button
+                onClick={handleShuffle}
+                className="ml-4 flex items-center gap-2 text-sm text-gray-500 hover:text-black transition-colors duration-200 px-3 py-1 rounded-md hover:bg-gray-100"
+              >
+                <Shuffle size={16} />
+                <span>シャッフル</span>
+              </button>
             </div>
+
             {filteredFonts.length === 0 ? (
               <div className="border-2 border-gray-200 rounded-none p-16 text-center">
                 <div className="text-gray-600 text-xl mb-3 font-light">フォントが見つかりません</div>
@@ -438,7 +480,7 @@ export default function HomePage() {
               </div>
             ) : (
               <div className="flex flex-wrap gap-4">
-                {filteredFonts.map((font) => (
+                {displayedFonts.map((font) => (
                   <div key={font.name} className="border border-gray-200 bg-white hover:shadow-lg hover:border-black transition-all duration-200 p-4 rounded-none flex flex-col items-center justify-center min-w-[160px] cursor-pointer" onClick={(e) => handleCardClick(font.name, e)}>
                     <div className="overflow-hidden">
                       <p className="text-center break-all text-black" style={{ fontFamily: font.family, fontSize: `${debouncedFontSize}px`, whiteSpace: 'nowrap', lineHeight: 1.2 }}>
