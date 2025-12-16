@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
-import { Type, Languages, Copy, Check, Search, Filter, FolderDown, Mail, Shuffle } from 'lucide-react';
+import { Languages, FolderDown, Mail, Shuffle } from 'lucide-react';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -137,23 +137,11 @@ const japaneseFonts: FontData[] = [
   { name: '遊星マジック', family: '"Yusei Magic", sans-serif', category: 'ゴシック' },
 ];
 
-const categoryColors = {
-  'サンセリフ': 'bg-gray-100 text-gray-800 border-gray-300',
-  'ゴシック': 'bg-gray-100 text-gray-800 border-gray-300',
-  'セリフ': 'bg-gray-200 text-gray-900 border-gray-400',
-  '明朝': 'bg-gray-200 text-gray-900 border-gray-400',
-  '等幅': 'bg-black text-white border-gray-600',
-  'モノスペース': 'bg-black text-white border-gray-600',
-  '筆記体': 'bg-gray-50 text-gray-700 border-gray-200',
-  'ファンタジー': 'bg-gray-300 text-gray-900 border-gray-500',
-  'ディスプレイ': 'bg-gray-800 text-white border-gray-700',
-  'ローカル': 'bg-blue-100 text-blue-800 border-blue-300',
-};
+
 
 export default function HomePage() {
   const [previewText, setPreviewText] = useState('素早い茶色の狐が怠惰な犬を飛び越える');
   const [isJapanese, setIsJapanese] = useState(true);
-  const [copiedFont, setCopiedFont] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('すべて');
   const [sliderValue, setSliderValue] = useState(24); // スライダーが直接操作する値
@@ -182,7 +170,6 @@ export default function HomePage() {
     return uniqueFonts;
   }, [isJapanese, localJapaneseFonts, localEnglishFonts]);
 
-  const categories = ['すべて', ...Array.from(new Set(currentFonts.map(font => font.category)))];
 
     const filteredFonts = useMemo(() => {
     return currentFonts.filter(font => {
@@ -226,7 +213,7 @@ export default function HomePage() {
     }, 50);
   };
 
-  const handleCardClick = async (fontName: string, event: React.MouseEvent<HTMLDivElement>) => {
+ const handleCardClick = async (fontName: string, event: React.MouseEvent<HTMLDivElement>) => {
     try {
       // 1. フォント名をクリップボードにコピー
       await navigator.clipboard.writeText(fontName);
@@ -237,13 +224,12 @@ export default function HomePage() {
       // 3. メッセージを表示
       setShowToast(true);
 
-      // (オプション) どのフォントがコピーされたか記録
-      setCopiedFont(fontName);
+      // ★ 不要な setCopiedFont を削除しました
 
       // 4. 2秒後にメッセージを非表示にする
       setTimeout(() => {
         setShowToast(false);
-        setCopiedFont(null);
+        // ★ ここも不要な setCopiedFont を削除しました
       }, 2000);
 
     } catch (err) {
