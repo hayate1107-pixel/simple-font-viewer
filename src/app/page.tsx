@@ -514,7 +514,7 @@ export default function HomePage() {
         </div>
 
         {/* --- コピーライトフッターエリア --- */}
-        <footer className="text-center pt-16">
+        <footer className="text-center pt-16 pb-8">
           {/* SNSアイコン */}
           <div className="flex justify-center items-center space-x-4 mb-8">
             <a
@@ -545,11 +545,16 @@ export default function HomePage() {
               <Mail size={20} strokeWidth={1.5} />
             </a>
           </div>
-          <div className="text-sm text-gray-400">
+          <div className="text-sm text-gray-400 space-y-2">
             <p>
               &copy; 2025 | Powered by{' '}
               <a href="https://www.simple-font-viewer.com/" target="_blank" rel="noopener noreferrer" className="hover:text-gray-900 transition-colors">
                 W Design.
+              </a>
+            </p>
+                        <p>
+              <a href="/legal" className="text-xs text-gray-400 hover:text-gray-600 underline">
+                特定商取引法に基づく表記
               </a>
             </p>
           </div>
