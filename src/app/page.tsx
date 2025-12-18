@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useMemo, useEffect } from 'react';
-import { Languages, FolderDown, Mail, Shuffle } from 'lucide-react';
+import { Languages, FolderDown, Mail, Shuffle, Coffee, ChevronDown } from 'lucide-react';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -159,6 +159,7 @@ export default function HomePage() {
   const defaultJapaneseText = 'いろはにほへと ちりぬるを わかよたれそ つねならむ';
   const defaultEnglishText = 'The quick brown fox jumps over the lazy dog';
 
+  const [donationUrl, setDonationUrl] = useState('https://buy.stripe.com/fZuaEW6mWeb7g6C4AeaR202'); 
 
   const currentFonts = useMemo(() => {
     const baseFonts = isJapanese ? japaneseFonts : englishFonts;
@@ -531,6 +532,45 @@ export default function HomePage() {
               <Mail size={20} strokeWidth={1.5} />
             </a>
           </div>
+                    {/* ★★★ 投げ銭（支援）ボタンエリア ★★★ */}
+          <div className="flex justify-center mb-10">
+            <div className="flex items-center bg-[#FFDD00] rounded-full p-1 shadow-md hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">
+              
+              {/* コーヒーアイコン */}
+              <div className="pl-4 pr-2">
+                <Coffee size={20} strokeWidth={2.5} className="text-black" />
+              </div>
+
+              {/* 金額選択プルダウン */}
+                            <div className="relative group">
+                <select
+                  className="bg-transparent text-black font-bold text-sm focus:outline-none cursor-pointer py-3 pl-2 pr-8 appearance-none hover:bg-black/5 rounded transition-colors"
+                  onChange={(e) => setDonationUrl(e.target.value)}
+                  value={donationUrl}
+                  style={{ minWidth: '160px', textAlign: 'center' }}
+                >
+                <option value="https://buy.stripe.com/fZuaEW6mWeb7g6C4AeaR202">支援する松 (¥100)</option>
+                <option value="https://buy.stripe.com/28EeVc4eO1ol6w2aYCaR203">支援する竹 (¥500)</option>
+                <option value="https://buy.stripe.com/aFafZgcLk8QNf2y3waaR204">支援する梅 (¥1,000)</option>
+              </select>
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none text-black/70 group-hover:text-black transition-colors">
+                  <ChevronDown size={16} strokeWidth={3} />
+                </div>
+              </div>
+              {/* 決済ページへ飛ぶボタン */}
+              <a
+                href={donationUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-2 px-6 py-2.5 bg-black text-white text-sm font-bold rounded-full hover:bg-gray-800 transition-colors"
+              >
+                決済へ
+              </a>
+            </div>
+          </div>
+
+
+
           <div className="text-sm text-gray-400 space-y-2">
             <p>
               &copy; 2025 | Powered by{' '}
